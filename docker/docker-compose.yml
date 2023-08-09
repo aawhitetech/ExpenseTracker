@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      SA_PASSWORD: StrongPassword123   # Set your desired SA password
+      ACCEPT_EULA: Y
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+      - ./init:/var/opt/mssql-scripts
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        /opt/mssql/bin/sqlservr &
+        for i in {1..30}; do
+        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P StrongPassword123 -d master -i /var/opt/mssql-scripts/init.sql && break || sleep 1
+        done
+        sleep infinity
+
+volumes:
+  sqlserver-data:
